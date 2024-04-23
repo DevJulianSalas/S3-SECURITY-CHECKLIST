@@ -13,10 +13,9 @@ provider "aws" {
 }
 
 data "aws_iam_group" "get_iam_group" {
-  group_name = var.allow_bpa_group
+  for_each = {for name in var.deny_bpa_groups : name => name }
+  group_name = each.key
 }
-
-
 resource "aws_s3_account_public_access_block" "this" {
   block_public_acls       = true
   block_public_policy     = true
@@ -24,23 +23,13 @@ resource "aws_s3_account_public_access_block" "this" {
   restrict_public_buckets = true
 }
 
-resource "aws_iam_policy" "allow_bpa_access" {
+resource "aws_iam_policy" "deny_bpa_access" {
   name        = "DenyPublicAccessBlockSettings"
   path        = "/"
-  description = "This policy allow certain selected users to modify block public access settings"
+  description = "This policy deny users to modify block public access settings"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Action = "s3:PutAccountPublicAccessBlock"
-        Resource = "*"
-        Effect = "Allow"
-        Condition = {
-          StringEquals = {
-            "aws:userid" = ["${data.aws_iam_group.get_iam_group.arn}"]
-          }
-        }
-      },
       {
         Action = "s3:PutAccountPublicAccessBlock"
         Resource = "*"
@@ -48,4 +37,10 @@ resource "aws_iam_policy" "allow_bpa_access" {
       }
     ]
   })
+}
+
+resource "aws_iam_group_policy_attachment" "deny_bpa_access_policy_attach" {
+  for_each = {for name, group in data.aws_iam_group.get_iam_group : name => group}
+  group = each.key
+  policy_arn = aws_iam_policy.deny_bpa_access.arn
 }
