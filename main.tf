@@ -30,12 +30,33 @@ resource "aws_iam_policy" "deny_bpa_access" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Action = "s3:PutAccountPublicAccessBlock"
-        Resource = "*"
-        Effect = "Deny"
-      }
-    ]
+    {
+      Action = "s3:PutAccountPublicAccessBlock"
+      Resource = "*"
+      Effect = "Deny"
+    }]
+  })
+}
+
+resource "aws_iam_policy" "AllowSSLRequestsOnly" {
+  name = "AllowSSLRequestsOnly"
+  path = "/"
+  description = "This policy deny HTTP request to the objects"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    "Statement": [
+    {
+      "Sid": "AllowSSLRequestsOnly",
+      "Action": "s3:*",
+      "Effect": "Deny",
+      "Resource": [],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      },
+      "Principal": "*"
+    }]
   })
 }
 
@@ -44,3 +65,4 @@ resource "aws_iam_group_policy_attachment" "deny_bpa_access_policy_attach" {
   group = each.key
   policy_arn = aws_iam_policy.deny_bpa_access.arn
 }
+
