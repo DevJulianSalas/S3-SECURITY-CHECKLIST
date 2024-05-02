@@ -3,12 +3,16 @@
 
 
 Check list 
-
-- Review if the block public access settings account (BPA) is disabled.
-- If the BPA is disabled and there is no business case to leave it disabled then proceed to enabled it.
-- Create a policy to allow only selected IAM users/groups to change the BPA settings.
-- Attach the BPA policy to selected IAM users or groups.
-- Added a policy to allow access to Amazon S3 Objects only through HTTPS.
+- Create the business required policies allowing access only to the selected IAM users/groups.
+- Review the ACLS access to your bucket and its objects.
+- Create encryption at rest and transit.
+- Allow access to Amazon S3 Objects only through HTTPS.
+- Enable Versioning to protect against accidental deletion or modification of objects.
+- Enable Cross-Region Replication for DR actions and compliance purposes.
+- Enable Object Lock to prevent objects from being deleted or modified for compliance purpose.
+- For temporary objects must use signed URLS.
+- Enable Public Access (this is enabled for default).
+- Regular Audits.
 
 
 

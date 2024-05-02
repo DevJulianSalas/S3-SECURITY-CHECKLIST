@@ -12,17 +12,6 @@ provider "aws" {
 
 }
 
-data "aws_iam_group" "get_iam_group" {
-  for_each = {for name in var.deny_bpa_groups : name => name }
-  group_name = each.key
-}
-resource "aws_s3_account_public_access_block" "this" {
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 resource "aws_iam_policy" "deny_bpa_access" {
   name        = "DenyPublicAccessBlockSettings"
   path        = "/"
@@ -38,31 +27,11 @@ resource "aws_iam_policy" "deny_bpa_access" {
   })
 }
 
-resource "aws_iam_policy" "AllowSSLRequestsOnly" {
-  name = "AllowSSLRequestsOnly"
-  path = "/"
-  description = "This policy deny HTTP request to the objects"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    "Statement": [
-    {
-      "Sid": "AllowSSLRequestsOnly",
-      "Action": "s3:*",
-      "Effect": "Deny",
-      "Resource": [],
-      "Condition": {
-        "Bool": {
-          "aws:SecureTransport": "false"
-        }
-      },
-      "Principal": "*"
-    }]
-  })
+//Create bucket
+resource "aws_s3_bucket" "S3-security-checklist-bucket" {
+  bucket = "tf-security-checklist-bucket"
+  tags = {
+    Name = "tf-security-checklist-bucket"
+    Environment = "staging"
+  }
 }
-
-resource "aws_iam_group_policy_attachment" "deny_bpa_access_policy_attach" {
-  for_each = {for name, group in data.aws_iam_group.get_iam_group : name => group}
-  group = each.key
-  policy_arn = aws_iam_policy.deny_bpa_access.arn
-}
-
