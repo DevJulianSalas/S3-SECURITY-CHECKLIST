@@ -6,7 +6,7 @@ Check list
 - Create the business required policies allowing access only to the selected IAM users/groups.
 - Review the ACLS access to your bucket and its objects.
 - Create encryption at rest and transit.
-- Allow access to Amazon S3 Objects only through HTTPS.
+- Allow access to Amazon S3 Objects only through HTTPS (ensure encryption at transit).
 - Enable Versioning to protect against accidental deletion or modification of objects.
 - Enable Cross-Region Replication for DR actions and compliance purposes.
 - Enable Object Lock to prevent objects from being deleted or modified for compliance purpose.
@@ -21,3 +21,13 @@ Check list
 ```terraform init```
 ```terraform plan --var-file=value.tfvars  --out tfplan```
 ```terraform apply tfplan```
+
+
+
+
+- Review if the block public access settings account (BPA) is disabled.
+- If the BPA is disabled and there is no business case to leave it disabled then proceed to enabled it.
+
+
+
+Our Amazon S3 account is now being audited for changes and notifying me of questionable behavior. You also helped the team learn about how to compare our AWS account to recommended best practices.

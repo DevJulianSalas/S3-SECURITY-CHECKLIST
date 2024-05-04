@@ -12,20 +12,58 @@ provider "aws" {
 
 }
 
-resource "aws_iam_policy" "deny_bpa_access" {
-  name        = "DenyPublicAccessBlockSettings"
-  path        = "/"
-  description = "This policy deny users to modify block public access settings"
-  policy = jsonencode({
+//aws iam  policy document
+data "aws_iam_policy_document" "deny_http_request" {
+  statement {
+    sid = "DenyHTTPRequests"
+    effect = "Deny"
+    condition {
+      test =  "Bool"
+      variable = "aws:SecureTransport"
+      values = ["false"]
+
+    }
+    actions = [ 
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
+    resources = [
+      "${aws_s3_bucket.S3-security-checklist-bucket.arn}",
+      "${aws_s3_bucket.S3-security-checklist-bucket.arn}/*"
+    ]
+    principals {
+      type = "AWS"
+      identifiers = ["${aws_iam_role.s3-security-checklist-role.arn}"]
+    }
+  }
+}
+
+//create Iam role to allow access to S3 from ec2 instance using profile instnace role
+resource "aws_iam_role" "s3-security-checklist-role" {
+  name = "s3-security-checklist-role"
+  assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-    {
-      Action = "s3:PutAccountPublicAccessBlock"
-      Resource = "*"
-      Effect = "Deny"
-    }]
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
   })
 }
+
+
+
+//create S3 bucket policies
+resource "aws_s3_bucket_policy" "s3-security-checklist-policies" {
+  bucket = aws_s3_bucket.S3-security-checklist-bucket.id
+  policy = data.aws_iam_policy_document.deny_http_request.json
+}
+
 
 //Create bucket
 resource "aws_s3_bucket" "S3-security-checklist-bucket" {
