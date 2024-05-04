@@ -21,13 +21,4 @@ Check list
 ```terraform init```
 ```terraform plan --var-file=value.tfvars  --out tfplan```
 ```terraform apply tfplan```
-
-
-
-
-- Review if the block public access settings account (BPA) is disabled.
-- If the BPA is disabled and there is no business case to leave it disabled then proceed to enabled it.
-
-
-
-Our Amazon S3 account is now being audited for changes and notifying me of questionable behavior. You also helped the team learn about how to compare our AWS account to recommended best practices.
+```terraform destroy --var-file=value.tfvars```

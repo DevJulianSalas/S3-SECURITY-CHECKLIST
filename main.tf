@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "deny_http_request" {
 
 //create Iam role to allow access to S3 from ec2 instance using profile instnace role
 resource "aws_iam_role" "s3-security-checklist-role" {
-  name = "s3-security-checklist-role"
+  name = var.s3_iam_role_name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -67,7 +67,7 @@ resource "aws_s3_bucket_policy" "s3-security-checklist-policies" {
 
 //Create bucket
 resource "aws_s3_bucket" "S3-security-checklist-bucket" {
-  bucket = "tf-security-checklist-bucket"
+  bucket = var.bucket_name
   tags = {
     Name = "tf-security-checklist-bucket"
     Environment = "staging"
