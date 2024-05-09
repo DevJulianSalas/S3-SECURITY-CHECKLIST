@@ -13,6 +13,7 @@ provider "aws" {
 }
 //aws iam  policy document
 data "aws_iam_policy_document" "deny_http_request" {
+  for_each = aws_s3_bucket.buckets
   statement {
     sid = "DenyHTTPRequests"
     effect = "Deny"
@@ -27,8 +28,8 @@ data "aws_iam_policy_document" "deny_http_request" {
       "s3:ListBucket"
     ]
     resources = [
-      "${aws_s3_bucket.S3-security-checklist-bucket.arn}",
-      "${aws_s3_bucket.S3-security-checklist-bucket.arn}/*"
+      "${aws_s3_bucket.buckets[each.key].arn}",
+      "${aws_s3_bucket.buckets[each.key].arn}/*",
     ]
     principals {
       type = "AWS"
@@ -57,28 +58,24 @@ resource "aws_iam_role" "s3-security-checklist-role" {
 
 //create S3 bucket policies
 resource "aws_s3_bucket_policy" "s3-security-checklist-policies" {
-  bucket = aws_s3_bucket.S3-security-checklist-bucket.id
-  policy = data.aws_iam_policy_document.deny_http_request.json
+  for_each = aws_s3_bucket.buckets
+  bucket = aws_s3_bucket.buckets[each.key].id
+  policy = data.aws_iam_policy_document.deny_http_request[each.key].json
 }
 
 //Create buckets
-resource "aws_s3_bucket" "S3-security-checklist-bucket" {
-  bucket = var.bucket_name
+resource "aws_s3_bucket" "buckets" {
+  for_each = {for idx, name in var.bucket_names : idx => name}
+  bucket = each.value
   tags = {
-    Name = var.bucket_name
-    Environment = var.environment
-  }
-}
-resource "aws_s3_bucket" "S3-security-checklist-server-accesslogs-bucket" {
-  bucket = var.server_access_logs_bucket_name
-  tags = {
-    Name = var.server_access_logs_bucket_name
+    Name = each.value
     Environment = var.environment
   }
 }
 //create lifecycle rules to cost-optimization server access log bucket and bucket security list
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle-s3-rules" {
-  bucket = aws_s3_bucket.S3-security-checklist-server-accesslogs-bucket.id
+  for_each = aws_s3_bucket.buckets
+  bucket = aws_s3_bucket.buckets[each.key].id
   rule {
     id =  var.lifecycle_rule_id
     status = "Enabled"
@@ -96,9 +93,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle-s3-rules" {
 }
 
 # //create server access logs bucket
-# resource "aws_s3_bucket_logging" "S3-security-checklist-access-logs" {
-#   bucket = var.server_access_logs_bucket_name
-#   target_bucket = aws_s3_bucket.log_bucket.id
-#   target_prefix = "logs/"
-  
-# }
+resource "aws_s3_bucket_logging" "s3-logging" {
+  bucket = aws_s3_bucket.buckets[0].id
+  target_bucket = aws_s3_bucket.buckets[1].id
+  target_prefix = "logs/"
+}
