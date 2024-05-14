@@ -35,3 +35,15 @@ variable "lifecycle_rule_id" {
   type = string
   description = "the lifecycle rule id"
 }
+variable "s3_access_point_name" {
+  type = string
+  description = "the s3 access point name to attach to s3 main bucket"  
+}
+variable "vpc_id" {
+  type = string
+  description = "the vpc id to idenfity as filter and use it as network origin."
+}
+variable "vpc_name" {
+  type = string
+  description = "the vpc name to idenfity as filter and use it as network origin."
+}

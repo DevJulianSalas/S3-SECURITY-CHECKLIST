@@ -11,7 +11,7 @@ provider "aws" {
   profile = var.profile
 
 }
-//aws iam  policy document
+//aws iam  policy document 
 data "aws_iam_policy_document" "deny_http_request" {
   for_each = aws_s3_bucket.buckets
   statement {
@@ -35,6 +35,12 @@ data "aws_iam_policy_document" "deny_http_request" {
       type = "AWS"
       identifiers = ["${aws_iam_role.s3-security-checklist-role.arn}"]
     }
+  }
+}
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+  tags = {
+    Name = var.vpc_name
   }
 }
 
@@ -97,4 +103,20 @@ resource "aws_s3_bucket_logging" "s3-logging" {
   bucket = aws_s3_bucket.buckets[0].id
   target_bucket = aws_s3_bucket.buckets[1].id
   target_prefix = "logs/"
+}
+
+//S3 access point
+resource "aws_s3_access_point" "s3-access_point" {
+  name = var.s3_access_point_name
+  bucket = aws_s3_bucket.buckets[0].id
+  
+  vpc_configuration {
+    vpc_id = data.aws_vpc.selected.id
+  }
+  public_access_block_configuration {
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+  }
 }
