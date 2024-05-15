@@ -37,6 +37,35 @@ data "aws_iam_policy_document" "deny_http_request" {
     }
   }
 }
+
+data "aws_iam_policy_document" "delegating_access_control_to_access_point" {
+  statement {
+    sid = "DelegatingAccessControlToAccessPoint"
+    effect = "Allow"
+    actions = [ 
+      "s3:AbortMultipartUpload",
+      "s3:CompleteMultipartUpload",
+      "s3:CopyObject",
+      "s3:CreateMultipartUpload",
+      "s3:RestoreObject",
+      "s3:Delete*",
+      "s3:Get*",
+      "s3:Head*",
+      "s3:List*",
+      "s3:PutObject*",
+      "s3:Upload*",
+    ]
+    resources = [ 
+      "${aws_s3_bucket.buckets[0].arn}",
+      "${aws_s3_bucket.buckets[0].arn}/*",
+     ]
+     principals {
+       type = "AWS"
+       identifiers = [ "*" ]
+     }
+  }
+}
+
 data "aws_vpc" "selected" {
   id = var.vpc_id
   tags = {
@@ -67,6 +96,11 @@ resource "aws_s3_bucket_policy" "s3-security-checklist-policies" {
   for_each = aws_s3_bucket.buckets
   bucket = aws_s3_bucket.buckets[each.key].id
   policy = data.aws_iam_policy_document.deny_http_request[each.key].json
+}
+
+resource "aws_s3_bucket_policy" "s3-security-checklist-fullaccess-to-access-point" {
+  bucket = aws_s3_bucket.buckets[0].id
+  policy = data.aws_iam_policy_document.delegating_access_control_to_access_point.json
 }
 
 //Create buckets
