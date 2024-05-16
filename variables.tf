@@ -47,3 +47,7 @@ variable "vpc_name" {
   type = string
   description = "the vpc name to idenfity as filter and use it as network origin."
 }
+variable "s3_access_point_actions_policy" {
+  type = list(string)
+  description = "All the policy actions allowed by the bucket"
+}
