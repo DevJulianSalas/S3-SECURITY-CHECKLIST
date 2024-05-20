@@ -48,13 +48,13 @@ data "aws_iam_policy_document" "delegating_access_control_to_access_point" {
       "${aws_s3_bucket.buckets[0].arn}/*",
     ]
     condition {
-      test = "StringEquals"
-      variable = "DataAccessPointArn"
+      test = "ForAnyValue:ArnEquals"
+      variable = "s3:DataAccessPointArn"
       values = [aws_s3_access_point.s3-access_point.arn]
     }
     principals {
       type        = "AWS"
-      identifiers = [aws_s3_access_point.s3-access_point.arn]
+      identifiers = ["*"]
     }
   }
 }
