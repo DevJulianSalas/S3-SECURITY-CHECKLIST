@@ -51,3 +51,7 @@ variable "s3_access_point_actions_policy" {
   type = list(string)
   description = "All the policy actions allowed by the bucket"
 }
+variable "s3_access_points" {
+  type = list(string)
+  description = "The access point list for every team"
+}

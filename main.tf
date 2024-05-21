@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "delegating_access_control_to_access_point" {
     condition {
       test = "ForAnyValue:ArnEquals"
       variable = "s3:DataAccessPointArn"
-      values = [aws_s3_access_point.s3-access_point.arn]
+      values = tolist([for ac in aws_s3_access_point.s3-access_point : ac.arn])
     }
     principals {
       type        = "AWS"
@@ -83,13 +83,6 @@ resource "aws_iam_role" "s3-security-checklist-role" {
     ]
   })
 }
-
-//create S3 bucket policies
-# resource "aws_s3_bucket_policy" "s3-security-checklist-policies" {
-#   for_each = aws_s3_bucket.buckets
-#   bucket = aws_s3_bucket.buckets[1].id
-#   policy = data.aws_iam_policy_document.deny_http_request[each.key].json
-# }
 
 resource "aws_s3_bucket_policy" "s3-security-checklist-fullaccess-to-access-point" {
   bucket = aws_s3_bucket.buckets[0].id
@@ -134,7 +127,8 @@ resource "aws_s3_bucket_logging" "s3-logging" {
 
 //S3 access point
 resource "aws_s3_access_point" "s3-access_point" {
-  name = var.s3_access_point_name
+  for_each = toset(var.s3_access_points)
+  name = each.value
   bucket = aws_s3_bucket.buckets[0].id
   
   vpc_configuration {
@@ -146,4 +140,21 @@ resource "aws_s3_access_point" "s3-access_point" {
     ignore_public_acls      = true
     restrict_public_buckets = true
   }
+}
+
+//s3 access policies
+resource "aws_s3control_access_point_policy" "s3control_access_policy" {
+  for_each = toset(aws_s3_access_point.s3-access_point)
+  access_point_arn  = each.value.arn
+  policy = jsonencode({
+    Version = "2008-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "s3:GetObject"
+      Principal = {
+        AWS = "*"
+      }
+      Resource = "${each.value}/datasheets/${each.value.name}"
+    }]
+  })
 }
