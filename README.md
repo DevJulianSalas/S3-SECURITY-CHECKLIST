@@ -9,12 +9,12 @@ Check list
 - Allow access to Amazon S3 Objects only through HTTPS (ensure encryption at transit). ✅
 - Enable server access logs to provide enough information to security audit. 
 - If server access logs is enabled, configure lifecycle rules in the target bucket to expire/delete objects after a specified period of time. ✅
-- Use S3 access point at scale.
+- Use S3 access point at scale. ✅
 - Enable Versioning to protect against accidental deletion or modification of objects.
 - Enable Cross-Region Replication for DR actions and compliance purposes.
 - Enable Object Lock to prevent objects from being deleted or modified for compliance purpose.
 - For temporary objects must use signed URLS.
-- Enable Public Access (this is enabled for default).
+- Enable Public Access (this is enabled for default). ✅
 - Regular Audits.
 
 

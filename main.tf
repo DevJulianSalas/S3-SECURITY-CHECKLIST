@@ -144,17 +144,17 @@ resource "aws_s3_access_point" "s3-access_point" {
 
 //s3 access policies
 resource "aws_s3control_access_point_policy" "s3control_access_policy" {
-  for_each = toset(aws_s3_access_point.s3-access_point)
+  for_each = {for ap in aws_s3_access_point.s3-access_point : ap.name => ap}
   access_point_arn  = each.value.arn
   policy = jsonencode({
     Version = "2008-10-17"
     Statement = [{
       Effect = "Allow"
-      Action = "s3:GetObject"
+      Action = var.s3_access_point_actions_policy
       Principal = {
         AWS = "*"
       }
-      Resource = "${each.value}/datasheets/${each.value.name}"
+      Resource = "${each.value.arn}/object/datasheets/${each.value.name}/*"
     }]
   })
 }
